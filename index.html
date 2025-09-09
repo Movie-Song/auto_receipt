@@ -49,6 +49,99 @@
             padding: 30px;
         }
         
+        /* 로그인 페이지 스타일 */
+        .login-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .login-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .login-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .team-info {
+            background: #f8f9fc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .team-info h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .team-info p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .google-signin-container {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* 스캐너 페이지 스타일 */
+        .scanner-section {
+            display: none;
+        }
+        
+        .user-info {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #28a745;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .user-details h3 {
+            color: #155724;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .user-details p {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
         .upload-area {
             border: 3px dashed #e0e6ed;
             border-radius: 15px;
@@ -224,6 +317,25 @@
             100% { transform: rotate(360deg); }
         }
         
+        .access-denied {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .access-denied h3 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+        
+        .access-denied p {
+            color: #721c24;
+            font-size: 14px;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 margin: 0;
@@ -245,74 +357,212 @@
     <div class="container">
         <div class="header">
             <h1>📝 영수증 스캐너</h1>
-            <p>영수증을 촬영하여 자동으로 구글 시트에 저장하세요</p>
+            <p>팀원 전용 영수증 자동 등록 시스템</p>
         </div>
         
         <div class="content">
-            <div class="upload-area" id="uploadArea">
-                <div class="camera-icon">📷</div>
-                <div class="upload-text">영수증 사진 촬영</div>
-                <div class="upload-hint">탭하여 카메라를 실행하세요</div>
-                <input type="file" id="fileInput" accept="image/*" capture="camera">
-            </div>
-            
-            <div class="preview-container" id="previewContainer">
-                <img id="previewImage" class="preview-image" alt="영수증 미리보기">
-            </div>
-            
-            <div class="form-group" id="submitterGroup">
-                <label for="submitterName">제출자 이름</label>
-                <input type="text" id="submitterName" placeholder="이름을 입력하세요" required>
-            </div>
-            
-            <div class="form-group" id="receiptDataGroup">
-                <label for="storeName">상호명</label>
-                <input type="text" id="storeName" placeholder="상호명 (자동 인식될 예정)">
+            <!-- 로그인 섹션 -->
+            <div class="login-section" id="loginSection">
+                <h2>🔐 팀원 인증이 필요합니다</h2>
+                <p class="login-description">
+                    구글 계정으로 로그인하여 팀원 인증을 완료해주세요.<br>
+                    인증된 팀원만 영수증 데이터를 등록할 수 있습니다.
+                </p>
                 
-                <label for="totalAmount" style="margin-top: 15px;">총 금액</label>
-                <input type="number" id="totalAmount" placeholder="금액 (자동 인식될 예정)">
+                <div class="team-info">
+                    <h3>💼 승인된 팀원</h3>
+                    <p id="teamMembersList">팀 이메일로 가입된 구성원만 사용 가능합니다.</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                        ⚠️ 팀원이 아닌 경우 접근이 제한됩니다.
+                    </p>
+                </div>
                 
-                <label for="receiptDate" style="margin-top: 15px;">날짜</label>
-                <input type="date" id="receiptDate">
+                <div class="google-signin-container">
+                    <!-- Google Sign-In 버튼이 여기에 자동 생성됩니다 -->
+                    <div id="g_id_onload"
+                         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleCredentialResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
+                </div>
+                
+                <div class="access-denied" id="accessDenied" style="display: none;">
+                    <h3>❌ 접근 권한이 없습니다</h3>
+                    <p>승인된 팀원만 이 서비스를 사용할 수 있습니다.<br>관리자에게 문의해주세요.</p>
+                </div>
             </div>
             
-            <div class="button-group">
-                <button class="btn btn-secondary" id="retakeBtn">다시 촬영</button>
-                <button class="btn btn-primary" id="processBtn">OCR 분석</button>
-                <button class="btn btn-primary" id="saveBtn">시트에 저장</button>
+            <!-- 스캐너 섹션 -->
+            <div class="scanner-section" id="scannerSection">
+                <div class="user-info" id="userInfo">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-details">
+                        <h3 id="userName">사용자</h3>
+                        <p id="userEmail">user@example.com</p>
+                        <button class="logout-btn" onclick="signOut()">로그아웃</button>
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="camera-icon">📷</div>
+                    <div class="upload-text">영수증 사진 촬영</div>
+                    <div class="upload-hint">탭하여 카메라를 실행하세요</div>
+                    <input type="file" id="fileInput" accept="image/*" capture="camera">
+                </div>
+                
+                <div class="preview-container" id="previewContainer">
+                    <img id="previewImage" class="preview-image" alt="영수증 미리보기">
+                </div>
+                
+                <div class="form-group" id="receiptDataGroup">
+                    <label for="storeName">상호명</label>
+                    <input type="text" id="storeName" placeholder="상호명 (자동 인식될 예정)">
+                    
+                    <label for="totalAmount" style="margin-top: 15px;">총 금액</label>
+                    <input type="number" id="totalAmount" placeholder="금액 (자동 인식될 예정)">
+                    
+                    <label for="receiptDate" style="margin-top: 15px;">날짜</label>
+                    <input type="date" id="receiptDate">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="retakeBtn">다시 촬영</button>
+                    <button class="btn btn-primary" id="processBtn">OCR 분석</button>
+                    <button class="btn btn-primary" id="saveBtn">시트에 저장</button>
+                </div>
+                
+                <div class="status" id="status"></div>
             </div>
-            
-            <div class="status" id="status"></div>
         </div>
     </div>
     
+    <!-- Google Sign-In API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Tesseract.js for OCR -->
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+    
     <script>
-        // DOM 요소들
+        // ===== 설정 =====
+        // TODO: 실제 Google Client ID로 교체해야 합니다
+        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+        
+        // TODO: 팀원 이메일 목록을 실제 팀원들의 이메일로 교체해주세요
+        const TEAM_EMAILS = [
+            'team1@yourcompany.com',
+            'team2@yourcompany.com',
+            'team3@yourcompany.com',
+            // 실제 팀원 이메일들을 여기에 추가하세요
+        ];
+        
+        // TODO: Google Apps Script URL (나중에 설정)
+        const APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        // ===== 전역 변수 =====
+        let currentUser = null;
+        let currentImageFile = null;
+        let extractedData = null;
+        
+        // ===== DOM 요소들 =====
+        const loginSection = document.getElementById('loginSection');
+        const scannerSection = document.getElementById('scannerSection');
+        const accessDenied = document.getElementById('accessDenied');
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const previewContainer = document.getElementById('previewContainer');
         const previewImage = document.getElementById('previewImage');
-        const submitterGroup = document.getElementById('submitterGroup');
         const receiptDataGroup = document.getElementById('receiptDataGroup');
         const processBtn = document.getElementById('processBtn');
         const saveBtn = document.getElementById('saveBtn');
         const retakeBtn = document.getElementById('retakeBtn');
         const status = document.getElementById('status');
         
-        // 현재 이미지 데이터
-        let currentImageFile = null;
-        let extractedData = null;
+        // ===== Google Sign-In 콜백 =====
+        function handleCredentialResponse(response) {
+            try {
+                // JWT 토큰 파싱
+                const userInfo = parseJwt(response.credential);
+                console.log('로그인 정보:', userInfo);
+                
+                // 팀원 이메일 확인
+                if (TEAM_EMAILS.includes(userInfo.email)) {
+                    currentUser = userInfo;
+                    showScanner();
+                    updateUserInfo(userInfo);
+                    showStatus('로그인 성공! 영수증을 촬영해주세요.', 'success');
+                } else {
+                    showAccessDenied();
+                    console.log('접근 거부:', userInfo.email);
+                }
+            } catch (error) {
+                console.error('로그인 처리 오류:', error);
+                showStatus('로그인 처리 중 오류가 발생했습니다.', 'error');
+            }
+        }
         
-        // Google Apps Script URL (나중에 설정)
-        const APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        // ===== JWT 파싱 함수 =====
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
         
-        // 업로드 영역 클릭 이벤트
+        // ===== 화면 전환 함수들 =====
+        function showScanner() {
+            loginSection.style.display = 'none';
+            scannerSection.style.display = 'block';
+            accessDenied.style.display = 'none';
+        }
+        
+        function showLogin() {
+            loginSection.style.display = 'block';
+            scannerSection.style.display = 'none';
+            accessDenied.style.display = 'none';
+        }
+        
+        function showAccessDenied() {
+            accessDenied.style.display = 'block';
+        }
+        
+        // ===== 사용자 정보 업데이트 =====
+        function updateUserInfo(userInfo) {
+            document.getElementById('userName').textContent = userInfo.name || '사용자';
+            document.getElementById('userEmail').textContent = userInfo.email;
+            document.getElementById('userAvatar').textContent = (userInfo.name || 'U').charAt(0).toUpperCase();
+        }
+        
+        // ===== 로그아웃 =====
+        function signOut() {
+            currentUser = null;
+            resetForm();
+            showLogin();
+            hideStatus();
+            
+            // Google Sign-In 로그아웃
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                google.accounts.id.disableAutoSelect();
+            }
+        }
+        
+        // ===== 파일 업로드 이벤트들 =====
         uploadArea.addEventListener('click', () => {
-            fileInput.click();
+            if (currentUser) {
+                fileInput.click();
+            }
         });
         
-        // 드래그 앤 드롭 이벤트
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('active');
@@ -326,19 +576,18 @@
             e.preventDefault();
             uploadArea.classList.remove('active');
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
+            if (files.length > 0 && currentUser) {
                 handleFileSelect(files[0]);
             }
         });
         
-        // 파일 선택 이벤트
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
+            if (e.target.files.length > 0 && currentUser) {
                 handleFileSelect(e.target.files[0]);
             }
         });
         
-        // 파일 선택 처리
+        // ===== 파일 선택 처리 =====
         function handleFileSelect(file) {
             if (!file.type.startsWith('image/')) {
                 showStatus('이미지 파일을 선택해주세요.', 'error');
@@ -352,7 +601,7 @@
             reader.onload = (e) => {
                 previewImage.src = e.target.result;
                 previewContainer.style.display = 'block';
-                submitterGroup.style.display = 'block';
+                receiptDataGroup.style.display = 'block';
                 processBtn.style.display = 'inline-block';
                 retakeBtn.style.display = 'inline-block';
                 
@@ -362,16 +611,10 @@
             reader.readAsDataURL(file);
         }
         
-        // OCR 처리
+        // ===== OCR 처리 =====
         processBtn.addEventListener('click', async () => {
-            if (!currentImageFile) {
-                showStatus('먼저 영수증 사진을 촬영해주세요.', 'error');
-                return;
-            }
-            
-            const submitterName = document.getElementById('submitterName').value.trim();
-            if (!submitterName) {
-                showStatus('제출자 이름을 입력해주세요.', 'error');
+            if (!currentImageFile || !currentUser) {
+                showStatus('로그인 후 영수증 사진을 촬영해주세요.', 'error');
                 return;
             }
             
@@ -383,14 +626,13 @@
                 const result = await Tesseract.recognize(currentImageFile, 'kor');
                 const text = result.data.text;
                 
-                // 간단한 데이터 추출 (나중에 개선 가능)
+                // 간단한 데이터 추출
                 extractedData = parseReceiptText(text);
                 
                 // 폼에 데이터 채우기
                 document.getElementById('storeName').value = extractedData.storeName || '';
                 document.getElementById('totalAmount').value = extractedData.amount || '';
                 
-                receiptDataGroup.style.display = 'block';
                 saveBtn.style.display = 'inline-block';
                 processBtn.style.display = 'none';
                 
@@ -399,7 +641,6 @@
             } catch (error) {
                 console.error('OCR 오류:', error);
                 showStatus('영수증 분석 중 오류가 발생했습니다. 수동으로 입력해주세요.', 'error');
-                receiptDataGroup.style.display = 'block';
                 saveBtn.style.display = 'inline-block';
                 processBtn.style.display = 'none';
             } finally {
@@ -407,10 +648,16 @@
             }
         });
         
-        // 구글 시트에 저장
+        // ===== 구글 시트에 저장 =====
         saveBtn.addEventListener('click', async () => {
+            if (!currentUser) {
+                showStatus('로그인이 필요합니다.', 'error');
+                return;
+            }
+            
             const data = {
-                submittedBy: document.getElementById('submitterName').value.trim(),
+                submittedBy: currentUser.name,
+                submittedEmail: currentUser.email,
                 storeName: document.getElementById('storeName').value.trim(),
                 amount: document.getElementById('totalAmount').value,
                 date: document.getElementById('receiptDate').value,
@@ -418,8 +665,8 @@
             };
             
             // 필수 필드 검증
-            if (!data.submittedBy || !data.amount) {
-                showStatus('제출자 이름과 금액은 필수입니다.', 'error');
+            if (!data.amount) {
+                showStatus('금액은 필수입니다.', 'error');
                 return;
             }
             
@@ -460,25 +707,22 @@
             }
         });
         
-        // 다시 촬영
+        // ===== 다시 촬영 =====
         retakeBtn.addEventListener('click', () => {
             resetForm();
         });
         
-        // 폼 초기화
+        // ===== 폼 초기화 =====
         function resetForm() {
             currentImageFile = null;
             extractedData = null;
             
             previewContainer.style.display = 'none';
-            submitterGroup.style.display = 'none';
-            receiptDataGroup.style.display = 'none';
             
             processBtn.style.display = 'none';
             saveBtn.style.display = 'none';
             retakeBtn.style.display = 'none';
             
-            document.getElementById('submitterName').value = '';
             document.getElementById('storeName').value = '';
             document.getElementById('totalAmount').value = '';
             document.getElementById('receiptDate').value = '';
@@ -487,7 +731,7 @@
             hideStatus();
         }
         
-        // 상태 메시지 표시
+        // ===== 상태 메시지 =====
         function showStatus(message, type) {
             status.textContent = message;
             status.className = `status ${type}`;
@@ -502,7 +746,7 @@
             status.style.display = 'none';
         }
         
-        // 영수증 텍스트 파싱 (간단한 버전)
+        // ===== 영수증 텍스트 파싱 =====
         function parseReceiptText(text) {
             console.log('OCR 결과:', text);
             
@@ -510,7 +754,7 @@
             let storeName = '';
             let amount = '';
             
-            // 금액 찾기 (원, 총액, 합계 등의 키워드와 숫자 패턴)
+            // 금액 찾기
             const amountPatterns = [
                 /(?:총.*?|합계|총액|결제).*?(\d{1,3}(?:,\d{3})*)/,
                 /(\d{1,3}(?:,\d{3})*)\s*원/,
@@ -522,7 +766,7 @@
                     const match = line.match(pattern);
                     if (match && !amount) {
                         const foundAmount = parseInt(match[1].replace(/,/g, ''));
-                        if (foundAmount > 100) { // 100원 이상인 경우만
+                        if (foundAmount > 100) {
                             amount = foundAmount;
                             break;
                         }
@@ -530,10 +774,9 @@
                 }
             }
             
-            // 상호명 찾기 (첫 번째 줄이거나 특정 패턴)
+            // 상호명 찾기
             if (lines.length > 0) {
                 storeName = lines[0];
-                // 너무 짧거나 숫자만 있는 경우 다음 줄 확인
                 if (storeName.length < 2 || /^\d+$/.test(storeName)) {
                     storeName = lines[1] || storeName;
                 }
@@ -544,6 +787,14 @@
                 amount: amount
             };
         }
+        
+        // ===== 초기화 =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // 팀원 목록 표시 (보안상 실제 이메일은 숨김)
+            const teamCount = TEAM_EMAILS.length;
+            document.getElementById('teamMembersList').textContent = 
+                `등록된 팀원 ${teamCount}명이 사용 가능합니다.`;
+        });
     </script>
 </body>
 </html>
