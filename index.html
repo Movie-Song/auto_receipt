@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팀 영수증 스캐너</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #e0e6ed;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f8f9fc;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+        
+        .upload-area.active {
+            border-color: #4facfe;
+            background: #f0f8ff;
+            transform: scale(1.02);
+        }
+        
+        .camera-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            background: #4facfe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .upload-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fc;
+            color: #666;
+            border: 2px solid #e0e6ed;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e6ed;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 영수증 스캐너</h1>
+            <p>영수증을 촬영하여 자동으로 구글 시트에 저장하세요</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="camera-icon">📷</div>
+                <div class="upload-text">영수증 사진 촬영</div>
+                <div class="upload-hint">탭하여 카메라를 실행하세요</div>
+                <input type="file" id="fileInput" accept="image/*" capture="camera">
+            </div>
+            
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" class="preview-image" alt="영수증 미리보기">
+            </div>
+            
+            <div class="form-group" id="submitterGroup">
+                <label for="submitterName">제출자 이름</label>
+                <input type="text" id="submitterName" placeholder="이름을 입력하세요" required>
+            </div>
+            
+            <div class="form-group" id="receiptDataGroup">
+                <label for="storeName">상호명</label>
+                <input type="text" id="storeName" placeholder="상호명 (자동 인식될 예정)">
+                
+                <label for="totalAmount" style="margin-top: 15px;">총 금액</label>
+                <input type="number" id="totalAmount" placeholder="금액 (자동 인식될 예정)">
+                
+                <label for="receiptDate" style="margin-top: 15px;">날짜</label>
+                <input type="date" id="receiptDate">
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" id="retakeBtn">다시 촬영</button>
+                <button class="btn btn-primary" id="processBtn">OCR 분석</button>
+                <button class="btn btn-primary" id="saveBtn">시트에 저장</button>
+            </div>
+            
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+    
+    <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+    <script>
+        // DOM 요소들
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const submitterGroup = document.getElementById('submitterGroup');
+        const receiptDataGroup = document.getElementById('receiptDataGroup');
+        const processBtn = document.getElementById('processBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const status = document.getElementById('status');
+        
+        // 현재 이미지 데이터
+        let currentImageFile = null;
+        let extractedData = null;
+        
+        // Google Apps Script URL (나중에 설정)
+        const APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        // 업로드 영역 클릭 이벤트
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // 드래그 앤 드롭 이벤트
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('active');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('active');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('active');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        // 파일 선택 이벤트
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        // 파일 선택 처리
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showStatus('이미지 파일을 선택해주세요.', 'error');
+                return;
+            }
+            
+            currentImageFile = file;
+            
+            // 이미지 미리보기
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+                submitterGroup.style.display = 'block';
+                processBtn.style.display = 'inline-block';
+                retakeBtn.style.display = 'inline-block';
+                
+                // 현재 날짜 자동 설정
+                document.getElementById('receiptDate').value = new Date().toISOString().split('T')[0];
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // OCR 처리
+        processBtn.addEventListener('click', async () => {
+            if (!currentImageFile) {
+                showStatus('먼저 영수증 사진을 촬영해주세요.', 'error');
+                return;
+            }
+            
+            const submitterName = document.getElementById('submitterName').value.trim();
+            if (!submitterName) {
+                showStatus('제출자 이름을 입력해주세요.', 'error');
+                return;
+            }
+            
+            showStatus('영수증을 분석 중입니다...', 'processing');
+            processBtn.disabled = true;
+            
+            try {
+                // Tesseract.js를 사용한 OCR
+                const result = await Tesseract.recognize(currentImageFile, 'kor');
+                const text = result.data.text;
+                
+                // 간단한 데이터 추출 (나중에 개선 가능)
+                extractedData = parseReceiptText(text);
+                
+                // 폼에 데이터 채우기
+                document.getElementById('storeName').value = extractedData.storeName || '';
+                document.getElementById('totalAmount').value = extractedData.amount || '';
+                
+                receiptDataGroup.style.display = 'block';
+                saveBtn.style.display = 'inline-block';
+                processBtn.style.display = 'none';
+                
+                showStatus('영수증 분석이 완료되었습니다. 내용을 확인하고 저장해주세요.', 'success');
+                
+            } catch (error) {
+                console.error('OCR 오류:', error);
+                showStatus('영수증 분석 중 오류가 발생했습니다. 수동으로 입력해주세요.', 'error');
+                receiptDataGroup.style.display = 'block';
+                saveBtn.style.display = 'inline-block';
+                processBtn.style.display = 'none';
+            } finally {
+                processBtn.disabled = false;
+            }
+        });
+        
+        // 구글 시트에 저장
+        saveBtn.addEventListener('click', async () => {
+            const data = {
+                submittedBy: document.getElementById('submitterName').value.trim(),
+                storeName: document.getElementById('storeName').value.trim(),
+                amount: document.getElementById('totalAmount').value,
+                date: document.getElementById('receiptDate').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // 필수 필드 검증
+            if (!data.submittedBy || !data.amount) {
+                showStatus('제출자 이름과 금액은 필수입니다.', 'error');
+                return;
+            }
+            
+            showStatus('구글 시트에 저장 중입니다...', 'processing');
+            saveBtn.disabled = true;
+            
+            try {
+                // Google Apps Script로 데이터 전송
+                if (APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    // 아직 Google Apps Script가 설정되지 않은 경우
+                    console.log('저장할 데이터:', data);
+                    showStatus('Google Apps Script URL을 설정해주세요. 콘솔에서 데이터를 확인할 수 있습니다.', 'error');
+                    return;
+                }
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showStatus('성공적으로 저장되었습니다!', 'success');
+                    setTimeout(() => {
+                        resetForm();
+                    }, 2000);
+                } else {
+                    throw new Error('서버 응답 오류');
+                }
+                
+            } catch (error) {
+                console.error('저장 오류:', error);
+                showStatus('저장 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+        
+        // 다시 촬영
+        retakeBtn.addEventListener('click', () => {
+            resetForm();
+        });
+        
+        // 폼 초기화
+        function resetForm() {
+            currentImageFile = null;
+            extractedData = null;
+            
+            previewContainer.style.display = 'none';
+            submitterGroup.style.display = 'none';
+            receiptDataGroup.style.display = 'none';
+            
+            processBtn.style.display = 'none';
+            saveBtn.style.display = 'none';
+            retakeBtn.style.display = 'none';
+            
+            document.getElementById('submitterName').value = '';
+            document.getElementById('storeName').value = '';
+            document.getElementById('totalAmount').value = '';
+            document.getElementById('receiptDate').value = '';
+            
+            fileInput.value = '';
+            hideStatus();
+        }
+        
+        // 상태 메시지 표시
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'processing') {
+                status.innerHTML = `<div class="loading"></div>${message}`;
+            }
+        }
+        
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+        
+        // 영수증 텍스트 파싱 (간단한 버전)
+        function parseReceiptText(text) {
+            console.log('OCR 결과:', text);
+            
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+            let storeName = '';
+            let amount = '';
+            
+            // 금액 찾기 (원, 총액, 합계 등의 키워드와 숫자 패턴)
+            const amountPatterns = [
+                /(?:총.*?|합계|총액|결제).*?(\d{1,3}(?:,\d{3})*)/,
+                /(\d{1,3}(?:,\d{3})*)\s*원/,
+                /(\d{1,3}(?:,\d{3})*)$/
+            ];
+            
+            for (const line of lines) {
+                for (const pattern of amountPatterns) {
+                    const match = line.match(pattern);
+                    if (match && !amount) {
+                        const foundAmount = parseInt(match[1].replace(/,/g, ''));
+                        if (foundAmount > 100) { // 100원 이상인 경우만
+                            amount = foundAmount;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 상호명 찾기 (첫 번째 줄이거나 특정 패턴)
+            if (lines.length > 0) {
+                storeName = lines[0];
+                // 너무 짧거나 숫자만 있는 경우 다음 줄 확인
+                if (storeName.length < 2 || /^\d+$/.test(storeName)) {
+                    storeName = lines[1] || storeName;
+                }
+            }
+            
+            return {
+                storeName: storeName,
+                amount: amount
+            };
+        }
+    </script>
+</body>
+</html>
